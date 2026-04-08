@@ -667,33 +667,38 @@ sequential_ranks<-fourDR_returns$seqRanks
 #sequential_ranks
 
 # UPSERT ranks:
-rank_table$name<-rank_table$ID # Map ID to name for upsert
-cols <- c("name","rank") # columns to upsert
-col_list <- paste(sprintf('"%s"', cols), collapse = ", ")
-val_list <- paste(sprintf("$%d", seq_along(cols)), collapse = ", ")
-#val_list <- paste(rep("?", length(cols)), collapse = ", ")
-
-# Conflict Key column(s) (must have a UNIQUE/PK constraint)
-conflict_cols <- c("name") # e.g. c("date_time","location","court_rank","p1","p2",...)
-conflict_target <- paste(sprintf('"%s"', conflict_cols), collapse = ", ")
-
-# Update all columns except the conflict key columns
-update_cols <- setdiff(cols, conflict_cols)
-set_clause <- paste(
-  sprintf('"%s" = EXCLUDED."%s"', update_cols, update_cols),
-  collapse = ", "
-)
-
-sql <- sprintf(
-  'INSERT INTO public."4DR_current" (%s) VALUES (%s)
+tryCatch({
+  rank_table$name<-rank_table$ID # Map ID to name for upsert
+  cols <- c("name","rank") # columns to upsert
+  col_list <- paste(sprintf('"%s"', cols), collapse = ", ")
+  val_list <- paste(sprintf("$%d", seq_along(cols)), collapse = ", ")
+  #val_list <- paste(rep("?", length(cols)), collapse = ", ")
+  
+  # Conflict Key column(s) (must have a UNIQUE/PK constraint)
+  conflict_cols <- c("name") # e.g. c("date_time","location","court_rank","p1","p2",...)
+  conflict_target <- paste(sprintf('"%s"', conflict_cols), collapse = ", ")
+  
+  # Update all columns except the conflict key columns
+  update_cols <- setdiff(cols, conflict_cols)
+  set_clause <- paste(
+    sprintf('"%s" = EXCLUDED."%s"', update_cols, update_cols),
+    collapse = ", "
+  )
+  
+  sql <- sprintf(
+    'INSERT INTO public."4DR_current" (%s) VALUES (%s)
    ON CONFLICT (%s) DO UPDATE SET %s;',
-  col_list, val_list, conflict_target, set_clause
-)
-
-# Execute (parameterized)
-for (i in seq_len(nrow(rank_table))) {
-  DBI::dbExecute(con, sql, params = list(rank_table$name[i], rank_table$rank[i]))
-}
+    col_list, val_list, conflict_target, set_clause
+  )
+  
+  # Execute (parameterized)
+  for (i in seq_len(nrow(rank_table))) {
+    DBI::dbExecute(con, sql, params = list(rank_table$name[i], rank_table$rank[i]))
+  }
+}, error = function(e) {
+  cat("Error occurred:", e$message, "\n")
+  print(e)
+})
 
 ## app.R ##
 server <- function(input, output) {
