@@ -715,12 +715,14 @@ sequential_ranks<-fourDR_returns$seqRanks
 rank_table$name<-rank_table$ID # Map ID to name for upsert - needs to match DB table
 db_upsert("4DR_current",rank_table,c("name","rank"),"name")
 
-## UPSERT sequential ranks:
+## REPLACE sequential ranks:
 seq_ranks_tmp<-data.frame(name=sequential_ranks$ID,
                           rank=sequential_ranks$rank4dr, # Map rank4dr to rank for upsert - needs to match DB table
                           date_time=sequential_ranks$date_time)
 db_replace_table("sequential_ranks",seq_ranks_tmp)
 
+## REPLACE match_table_long:
+db_replace_table("match_table_long",match_table_long)
 
 
 ## app.R ##
