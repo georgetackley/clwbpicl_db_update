@@ -691,7 +691,7 @@ upsert_fx<-function(df,columns,conflicts){
   
   # Execute (parameterized)
   for (i in seq_len(nrow(df))) {
-    DBI::dbExecute(con, sql, params = as.list(df[i,]))
+    DBI::dbExecute(con, sql, params = as.list(df[i,cols]))
   }
 }
 
