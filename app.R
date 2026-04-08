@@ -691,7 +691,8 @@ upsert_fx<-function(df,columns,conflicts){
   
   # Execute (parameterized)
   for (i in seq_len(nrow(df))) {
-    DBI::dbExecute(con, sql, params = as.list(df[i,cols]))
+    tmp_params<-as.list(df[i,cols]) # This lists the row values for each NAMED column - name removed in next step
+    DBI::dbExecute(con, sql, params = unname(tmp_params))
   }
 }
 
