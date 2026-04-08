@@ -525,7 +525,7 @@ createLeaderBoard_4dr<-function(data_instance,row_length){
                  #`change` = improvement_formatter),
                  table.attr = 'style="font-size: 11px;";\"')
 }
-# DB connection function:
+# DB functions:
 connectDB <- function(){
   
   # Set Supabase connection env. parameters:
@@ -555,6 +555,34 @@ connectDB <- function(){
     sslmode = "require"
   )
   return(con)
+}
+upsert_fx<-function(df,columns,conflicts){
+  cols <- columns # columns to upsert
+  col_list <- paste(sprintf('"%s"', cols), collapse = ", ")
+  val_list <- paste(sprintf("$%d", seq_along(cols)), collapse = ", ")
+  
+  # Conflict Key column(s) (must have a UNIQUE/PK constraint)
+  conflict_cols <- conflicts # e.g. c("date_time","location","court_rank","p1","p2",...)
+  conflict_target <- paste(sprintf('"%s"', conflict_cols), collapse = ", ")
+  
+  # Update all columns except the conflict key columns
+  update_cols <- setdiff(cols, conflict_cols)
+  set_clause <- paste(
+    sprintf('"%s" = EXCLUDED."%s"', update_cols, update_cols),
+    collapse = ", "
+  )
+  
+  sql <- sprintf(
+    'INSERT INTO public."4DR_current" (%s) VALUES (%s)
+   ON CONFLICT (%s) DO UPDATE SET %s;',
+    col_list, val_list, conflict_target, set_clause
+  )
+  
+  # Execute (parameterized)
+  for (i in seq_len(nrow(df))) {
+    tmp_params<-as.list(df[i,cols]) # This lists the row values for each NAMED column - name removed in next step
+    DBI::dbExecute(con, sql, params = unname(tmp_params))
+  }
 }
 
 #Call DB connection function
@@ -667,65 +695,18 @@ sequential_ranks<-fourDR_returns$seqRanks
 #rank_table
 #sequential_ranks
 
-upsert_fx<-function(df,columns,conflicts){
-  cols <- columns # columns to upsert
-  col_list <- paste(sprintf('"%s"', cols), collapse = ", ")
-  val_list <- paste(sprintf("$%d", seq_along(cols)), collapse = ", ")
-  
-  # Conflict Key column(s) (must have a UNIQUE/PK constraint)
-  conflict_cols <- conflicts # e.g. c("date_time","location","court_rank","p1","p2",...)
-  conflict_target <- paste(sprintf('"%s"', conflict_cols), collapse = ", ")
-  
-  # Update all columns except the conflict key columns
-  update_cols <- setdiff(cols, conflict_cols)
-  set_clause <- paste(
-    sprintf('"%s" = EXCLUDED."%s"', update_cols, update_cols),
-    collapse = ", "
-  )
-  
-  sql <- sprintf(
-    'INSERT INTO public."4DR_current" (%s) VALUES (%s)
-   ON CONFLICT (%s) DO UPDATE SET %s;',
-    col_list, val_list, conflict_target, set_clause
-  )
-  
-  # Execute (parameterized)
-  for (i in seq_len(nrow(df))) {
-    tmp_params<-as.list(df[i,cols]) # This lists the row values for each NAMED column - name removed in next step
-    DBI::dbExecute(con, sql, params = unname(tmp_params))
-  }
-}
 
-# UPSERT ranks:
+
+## UPSERT ranks:
 rank_table$name<-rank_table$ID # Map ID to name for upsert - needs to match DB table
 upsert_fx(rank_table,c("name","rank"),"name")
 
-# cols <- c("name","rank") # columns to upsert
-# col_list <- paste(sprintf('"%s"', cols), collapse = ", ")
-# val_list <- paste(sprintf("$%d", seq_along(cols)), collapse = ", ")
-# #val_list <- paste(rep("?", length(cols)), collapse = ", ")
-# 
-# # Conflict Key column(s) (must have a UNIQUE/PK constraint)
-# conflict_cols <- c("name") # e.g. c("date_time","location","court_rank","p1","p2",...)
-# conflict_target <- paste(sprintf('"%s"', conflict_cols), collapse = ", ")
-# 
-# # Update all columns except the conflict key columns
-# update_cols <- setdiff(cols, conflict_cols)
-# set_clause <- paste(
-#   sprintf('"%s" = EXCLUDED."%s"', update_cols, update_cols),
-#   collapse = ", "
-# )
-# 
-# sql <- sprintf(
-#   'INSERT INTO public."4DR_current" (%s) VALUES (%s)
-#    ON CONFLICT (%s) DO UPDATE SET %s;',
-#   col_list, val_list, conflict_target, set_clause
-# )
-# 
-# # Execute (parameterized)
-# for (i in seq_len(nrow(rank_table))) {
-#   DBI::dbExecute(con, sql, params = list(rank_table$name[i], rank_table$rank[i]))
-# }
+## UPSERT sequential ranks:
+sequential_ranks$name<-sequential_ranks$ID # Map ID to name for upsert - needs to match DB table
+sequential_ranks$rank<-sequential_ranks$rank4dr # Map rank4dr to rank for upsert - needs to match DB table
+upsert_fx(sequential_ranks,c("name","rank","date_time"),c("name","date_time"))
+
+
 
 ## app.R ##
 server <- function(input, output) {
