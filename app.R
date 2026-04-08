@@ -556,7 +556,7 @@ connectDB <- function(){
   )
   return(con)
 }
-upsert_fx<-function(db_target_table,df,columns,conflicts){
+db_upsert<-function(db_target_table,df,columns,conflicts){
   cols <- columns # columns to upsert
   col_list <- paste(sprintf('"%s"', cols), collapse = ", ")
   val_list <- paste(sprintf("$%d", seq_along(cols)), collapse = ", ")
@@ -583,6 +583,20 @@ upsert_fx<-function(db_target_table,df,columns,conflicts){
     tmp_params<-as.list(df[i,cols]) # This lists the row values for each NAMED column - name removed in next step
     DBI::dbExecute(con, sql, params = unname(tmp_params))
   }
+}
+db_replace_table<-function(db_target_table,df){
+  dbBegin(con)
+  dbExecute(con, sprintf('TRUNCATE TABLE "%s" RESTART IDENTITY;',db_target_table))
+  
+  dbWriteTable(
+    con,
+    name = db_target_table,
+    value = df,
+    append = TRUE,
+    row.names = FALSE
+  )
+  
+  dbCommit(con)
 }
 
 #Call DB connection function
@@ -699,12 +713,13 @@ sequential_ranks<-fourDR_returns$seqRanks
 
 ## UPSERT ranks:
 rank_table$name<-rank_table$ID # Map ID to name for upsert - needs to match DB table
-upsert_fx("4DR_current",rank_table,c("name","rank"),"name")
+db_upsert("4DR_current",rank_table,c("name","rank"),"name")
 
 ## UPSERT sequential ranks:
-sequential_ranks$name<-sequential_ranks$ID # Map ID to name for upsert - needs to match DB table
-sequential_ranks$rank<-sequential_ranks$rank4dr # Map rank4dr to rank for upsert - needs to match DB table
-upsert_fx("sequential_ranks",sequential_ranks,c("name","rank","date_time"),c("name","date_time"))
+seq_ranks_tmp<-data.frame(name=sequential_ranks$ID,
+                          rank=sequential_ranks$rank4dr, # Map rank4dr to rank for upsert - needs to match DB table
+                          date_time=sequential_ranks$date_time)
+db_replace_table("sequential_ranks",seq_ranks_tmp)
 
 
 
@@ -714,7 +729,7 @@ server <- function(input, output) {
 
 ui <- page_fluid(
   title = "CPC Stats_update",
-  titlePanel(h1("Clwb Picl Stats Update", align="center")),
+  titlePanel(h1("Database update calculations performed", align="center")),
   div(tags$a("Return to Main site",href="https://cardiffpickleballclub.wordpress.com/"), style="text-align: center;")
 )
 
