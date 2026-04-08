@@ -556,7 +556,7 @@ connectDB <- function(){
   )
   return(con)
 }
-upsert_fx<-function(df,columns,conflicts){
+upsert_fx<-function(db_target_table,df,columns,conflicts){
   cols <- columns # columns to upsert
   col_list <- paste(sprintf('"%s"', cols), collapse = ", ")
   val_list <- paste(sprintf("$%d", seq_along(cols)), collapse = ", ")
@@ -573,9 +573,9 @@ upsert_fx<-function(df,columns,conflicts){
   )
   
   sql <- sprintf(
-    'INSERT INTO public."4DR_current" (%s) VALUES (%s)
+    'INSERT INTO public."%s" (%s) VALUES (%s)
    ON CONFLICT (%s) DO UPDATE SET %s;',
-    col_list, val_list, conflict_target, set_clause
+    db_target_table,col_list, val_list, conflict_target, set_clause
   )
   
   # Execute (parameterized)
@@ -699,12 +699,12 @@ sequential_ranks<-fourDR_returns$seqRanks
 
 ## UPSERT ranks:
 rank_table$name<-rank_table$ID # Map ID to name for upsert - needs to match DB table
-upsert_fx(rank_table,c("name","rank"),"name")
+upsert_fx("4DR_current",rank_table,c("name","rank"),"name")
 
 ## UPSERT sequential ranks:
 sequential_ranks$name<-sequential_ranks$ID # Map ID to name for upsert - needs to match DB table
 sequential_ranks$rank<-sequential_ranks$rank4dr # Map rank4dr to rank for upsert - needs to match DB table
-upsert_fx(sequential_ranks,c("name","rank","date_time"),c("name","date_time"))
+upsert_fx("sequential_ranks",sequential_ranks,c("name","rank","date_time"),c("name","date_time"))
 
 
 
