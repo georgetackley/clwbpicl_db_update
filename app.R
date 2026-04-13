@@ -325,7 +325,7 @@ fourDRCalc_zeroSum_ORIGINAL<-function(){
     }
   }
 }
-fourDRCalc_zeroSum<-function(){
+fourDRCalc_zeroSum<-function(rank_table){
   # Create copy of rank table for function:
   fx_rank_table<-rank_table
   # Create table to collect sequential 4DR ranks:
@@ -701,7 +701,7 @@ updateFx<-function(){
   
   
   ## Run 4DR calculation
-  fourDR_returns<-fourDRCalc_zeroSum() #updated - zero sum version; simultaneous game calcs (not sequential for the 4 players); div by 3
+  fourDR_returns<-fourDRCalc_zeroSum(rank_table) #updated - zero sum version; simultaneous game calcs (not sequential for the 4 players); div by 3
   rank_table<-fourDR_returns$ranks
   sequential_ranks<-fourDR_returns$seqRanks
   
