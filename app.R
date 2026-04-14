@@ -732,7 +732,6 @@ server <- function(input, output) {
 ui <- page_fluid(
   title = "CPC Stats_update",
   titlePanel(h1(paste0("Database calculations updated: ",updateTime), align="center")),
-  div(tags$a("Return to Main site",href="https://cardiffpickleballclub.wordpress.com/"), style="text-align: center;"),
   fluidRow(column(4),column(4,actionButton("update","Re-run Db Update"), align="center"),column(4))
 )
 
