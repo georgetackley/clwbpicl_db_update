@@ -723,17 +723,18 @@ updateFx()
 
 ## app.R ##
 server <- function(input, output) {
-  observeEvent(input$update, {
+  observeEvent(input$update {
+    # Runs DB update fx
     updateFx()
+    
+    # Update output text:
     output$time_txt <- as.character(Sys.time())
   })
 }
 
 ui <- page_fluid(
   title = "CPC Stats_update",
-  titlePanel(h1(paste0("Database calculations updated: ",
-                       textOutput("time_txt")),
-                align="center")),
+  titlePanel(textOutput("time_txt")),
   fluidRow(column(4),column(4,
                             actionButton(inputId = "update",label = "Re-run Db Update"),
                             align="center"),column(4))
