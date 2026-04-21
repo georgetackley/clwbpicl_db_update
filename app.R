@@ -718,21 +718,32 @@ updateFx<-function(){
   ## REPLACE match_table_long:
   db_replace_table("match_table_long",match_table_long)
 }
-updateFx()
+#updateFx()
 updateTime<-as.character(Sys.time())
 
 ## app.R ##
 server <- function(input, output) {
   observeEvent(input$update, {
-    updateFx()
+    #updateFx()
     updateTime<-as.character(Sys.time())
+  })
+  output$time_string <- renderText({
+    paste("TIME: ", as.character(Sys.time()))
   })
 }
 
 ui <- page_fluid(
   title = "CPC Stats_update",
-  titlePanel(h1(paste0("Database calculations updated: ",updateTime), align="center")),
-  fluidRow(column(4),column(4,actionButton("update","Re-run Db Update"), align="center"),column(4))
+  #titlePanel(h1(paste0("Database calculations updated: ",updateTime), align="center")),
+  titlePanel(h1(paste0("Database calculations updated: ",
+                       textOutput("time_string")
+                       ), align="center")),
+  fluidRow(column(4),column(4,
+                            actionButton(
+                              "update",
+                              "Re-run Db Update"
+                              ),
+                            align="center"),column(4))
 )
 
 
