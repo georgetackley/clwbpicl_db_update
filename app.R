@@ -720,9 +720,11 @@ server <- function(input, output) {
     updateFx()
   }) %>% bindEvent(input$update)
   
-  output$updating_string <- renderText({
-    paste("Updating ...")
-  }) %>% bindEvent(input$update)
+  observeEvent(input$update, {
+    output$updating_string <- renderText({
+      "Updating ..."
+    })
+  })
   
   output$time_string <- renderText({
     paste("... completed at: ", as.character(floor_date(ymd_hms(Sys.time()))),run_update())
