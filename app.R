@@ -736,15 +736,15 @@ ui <- page_fluid(
   title = "CPC Stats_update",
   #titlePanel(h1(paste0("Database calculations updated: ",updateTime), align="center")),
   titlePanel(
-    textOutput("time_string"),
-    fluidRow(column(4),
-             column(4,
-                    actionButton(
-                      "update",
-                      "Re-run Db Update"
-                    ),
-                    align="center"),column(4))
-  )
+    textOutput("time_string")),
+  fluidRow(column(4),
+           column(4,
+                  actionButton(
+                    "update",
+                    "Re-run Db Update"
+                  ),
+                  align="center"),column(4))
+  
 )
 
 
