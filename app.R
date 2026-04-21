@@ -728,11 +728,13 @@ server <- function(input, output) {
   #  updateTime<-as.character(Sys.time())
   #})
   
-  output$time_string <- renderText({
-    paste("UPDATED: ", as.character(Sys.time()))
+  run_update <- reactive({
     x<-1
-  }) |> # This is a pipe operator ... not sure why this works to bind the updated input$update event ...!
-    bindEvent(input$update)
+  }) %>% bindEvent(input$update)
+  
+  output$time_string <- renderText({
+    paste("UPDATED: ", as.character(Sys.time()),"; X eq.: ",run_update())
+  })
 }
 
 ui <- page_fluid(
