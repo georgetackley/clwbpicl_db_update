@@ -729,7 +729,8 @@ server <- function(input, output) {
   })
   output$time_string <- renderText({
     paste("TIME: ", as.character(Sys.time()))
-  })
+  }) |>
+    bindEvent(input$update)
 }
 
 ui <- page_fluid(
