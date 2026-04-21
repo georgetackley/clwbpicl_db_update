@@ -723,27 +723,26 @@ updateTime<-as.character(Sys.time())
 
 ## app.R ##
 server <- function(input, output) {
-  observeEvent(input$update, {
+  #observeEvent(input$update, {
     #updateFx()
-    updateTime<-as.character(Sys.time())
-  })
+  #  updateTime<-as.character(Sys.time())
+  #})
+  
   output$time_string <- renderText({
-    paste("TIME: ", as.character(Sys.time()))
-  }) |>
+    paste("UPDATED: ", as.character(Sys.time()))
+    x<-1
+  }) |> # This is a pipe operator ... not sure why this works to bind the updated input$update event ...!
     bindEvent(input$update)
 }
 
 ui <- page_fluid(
   title = "CPC Stats_update",
-  #titlePanel(h1(paste0("Database calculations updated: ",updateTime), align="center")),
-  titlePanel(
-    textOutput("time_string")),
   fluidRow(column(4),
            column(4,
                   actionButton(
                     "update",
-                    "Re-run Db Update"
-                  ),
+                    "Re-run Db Update"),
+                  textOutput("time_string"),
                   align="center"),column(4))
   
 )
