@@ -720,8 +720,12 @@ server <- function(input, output) {
     updateFx()
   }) %>% bindEvent(input$update)
   
+  output$updating_string <- renderText({
+    paste("Updating ...")
+  }) %>% bindEvent(input$update)
+  
   output$time_string <- renderText({
-    paste("UPDATE-triggered: ", as.character(floor_date(ymd_hms(Sys.time()))),run_update())
+    paste("... completed at: ", as.character(floor_date(ymd_hms(Sys.time()))),run_update())
   })
 }
 
@@ -733,6 +737,7 @@ ui <- page_fluid(
                   actionButton(
                     "update",
                     "Re-run Db Update"),
+                  textOutput("updating_string"),
                   textOutput("time_string"),
                   align="center"),column(4))
   
