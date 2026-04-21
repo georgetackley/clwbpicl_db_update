@@ -713,22 +713,15 @@ updateFx<-function(){
   db_replace_table("match_table_long",match_table_long)
 }
 #updateFx()
-updateTime<-as.character(Sys.time())
 
 ## app.R ##
 server <- function(input, output) {
-  #observeEvent(input$update, {
-    #updateFx()
-  #  updateTime<-as.character(Sys.time())
-  #})
-  
   run_update <- reactive({
-    x<-1
-    y<-2
+    updateFx()
   }) %>% bindEvent(input$update)
   
   output$time_string <- renderText({
-    paste("UPDATED: ", as.character(floor_date(ymd_hms(Sys.time()))),"; X eq.: ",run_update())
+    paste("UPDATE-triggered: ", as.character(floor_date(ymd_hms(Sys.time()))),run_update())
   })
 }
 
