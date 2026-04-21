@@ -719,15 +719,9 @@ server <- function(input, output) {
   run_update <- reactive({
     updateFx()
   }) %>% bindEvent(input$update)
-  
-  observeEvent(input$update, {
-    output$updating_string <- renderText({
-      "Updating ..."
-    })
-  })
-  
+
   output$time_string <- renderText({
-    paste("... completed at: ", as.character(floor_date(ymd_hms(Sys.time()))),run_update())
+    paste("... Update completed at: ", as.character(floor_date(ymd_hms(Sys.time()))),run_update())
   })
 }
 
@@ -739,7 +733,7 @@ ui <- page_fluid(
                   actionButton(
                     "update",
                     "Re-run Db Update"),
-                  textOutput("updating_string"),
+                  p("Click once and wait 2-3 minutes for update ..."),
                   textOutput("time_string"),
                   align="center"),column(4))
   
