@@ -602,12 +602,6 @@ db_replace_table<-function(db_target_table,df){
 #Call DB connection function
 con<-connectDB()
 
-## Some useful DB debug commands:
-#----
-#print(dbGetQuery(con, "SELECT current_database() AS db, current_user AS user, inet_server_addr() AS server_ip;"))
-#print(dbListTables(con))           # lists tables in the search_path
-#----
-
 updateFx<-function(){
   ## Load data from database
   match_table <- dbReadTable(con, "mastersheet")   # equivalent to SELECT * FROM "mastersheet"
@@ -730,6 +724,7 @@ server <- function(input, output) {
   
   run_update <- reactive({
     x<-1
+    y<-2
   }) %>% bindEvent(input$update)
   
   output$time_string <- renderText({
@@ -739,6 +734,7 @@ server <- function(input, output) {
 
 ui <- page_fluid(
   title = "CPC Stats_update",
+  headerPanel(""),
   fluidRow(column(4),
            column(4,
                   actionButton(
